@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>サーバーリスト</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header class="header">
+    <div class="logo-container">
+      <img src="/logo.webp" alt="サーバーロゴ" class="logo">
+    </div>
+    <div class="header-title">
+      <h1>FastServer Connect</h1>
+      <p>サーバーリスト</p>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="server-list">
+      <% servers.forEach(server => { %>
+        <div class="server-card">
+          <div class="server-icon">
+            <img src="<%= server.mcinfo.favicon %>" alt="サーバーアイコン" class="favicon">
+          </div>
+          <div class="server-info">
+            <div class="server-name-version">
+              <h2 class="server-title"><%= server.サーバー名 %></h2>
+              <div class="version"><%= server.mcinfo.version %></div>
+            </div>
+            <div class="server-connect">
+              <span class="connect-key"><span class="key-label">接続キー</span> <%= server.connect_key %></span>
+              <span class="player-count"><span class="count-label">プレイヤー数</span> <%= server.mcinfo.players %></span>
+            </div>
+            <div class="server-motd">
+              <span class="motd"><%= server.mcinfo.motd %></span>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</body>
+</html>
