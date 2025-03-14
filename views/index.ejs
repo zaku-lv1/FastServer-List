@@ -8,8 +8,91 @@
   
   <!-- SweetAlert2のCDNを追加 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+  function minecraftColorToHtml(text) {
+  const colorCodes = {
+    '0': '#000000', // ブラック
+    '1': '#0000AA', // ダークブルー
+    '2': '#00AA00', // ダークグリーン
+    '3': '#00AAAA', // ダークアクア
+    '4': '#AA0000', // ダークレッド
+    '5': '#AA00AA', // ダークピンク
+    '6': '#FFAA00', // ゴールド
+    '7': '#AAAAAA', // グレー
+    '8': '#555555', // ダークグレー
+    '9': '#5555FF', // ブルー
+    'a': '#55FF55', // グリーン
+    'b': '#55FFFF', // アクア
+    'c': '#FF5555', // レッド
+    'd': '#FF55FF', // ピンク
+    'e': '#FFFF55', // イエロー
+    'f': '#FFFFFF', // ホワイト
+  };
+
+  let result = '';
+  let currentColor = 'f';  // デフォルト色は白
+  let isBold = false;  // ボールドを管理
+  let isItalic = false;  // イタリックを管理
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    // Minecraftカラーコード（§[0-9a-f]）を検出
+    if (char === '§' && /[0-9a-frkoiulmn]/i.test(text[i + 1])) {
+      const code = text[i + 1].toLowerCase();
+
+      // 色リセット
+      if (code === 'r') {
+        currentColor = 'f';  // デフォルト色にリセット
+        isBold = false;
+        isItalic = false;
+      } 
+      // カラーコード
+      else if (colorCodes[code]) {
+        currentColor = code;  // 色を更新
+      }
+      // スタイルコード
+      else if (code === 'l') {  // ボールド
+        isBold = true;
+      } else if (code === 'o') {  // イタリック
+        isItalic = true;
+      }
+      
+      i++;  // 次の文字はカラーコードなのでスキップ
+    } else {
+      // カラーコードを適用した文字を追加
+      let style = `color: ${colorCodes[currentColor]};`;
+
+      if (isBold) style += ' font-weight: bold;';
+      if (isItalic) style += ' font-style: italic;';
+
+      result += `<span style="${style}">${char}</span>`;
+    }
+  }
+
+  return result;
+}
+
+  </script>
   
   <style>
+    /* サーバーカードの背景色 */
+    .server-card.tcp {
+      background-color: #d4edda; /* 薄緑 */
+    }
+
+    .server-card.udp {
+      background-color:rgb(173, 173, 173); /* 灰色 */
+    }
+
+    .server-card {
+      padding: 15px;
+      margin: 10px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease;
+    }
+
     /* サーバーアドレスリンクのスタイリング */
     .connect-key a {
       color: #007bff;
@@ -52,6 +135,29 @@
         confirmButtonColor: '#007bff'
       });
     }
+
+    // サーバー名クリック時に詳細を表示する関数
+    function showServerDetails(server) {
+      // サーバーのMOTDにMinecraftカラーコードを適用
+      const formattedMOTD = minecraftColorToHtml(server.mcinfo.motd);
+
+      // SweetAlertでサーバーの詳細情報を表示
+      Swal.fire({
+        title: server.サーバー名,
+        html: `
+          <strong>バージョン:</strong> ${server.mcinfo.version} <br>
+          <strong>プレイヤー数:</strong> ${server.mcinfo.players} <br>
+          <strong>サーバーアドレス:</strong> ${server.connect_key}.zcnc.me <br><br>
+          <span class="motd">${formattedMOTD}</span>  <!-- ここでカラーコードが適用されたMOTDを表示 -->
+        `,
+        icon: 'info',
+        confirmButtonText: '閉じる',
+        background: '#f0f8ff',
+        color: '#333',
+        iconColor: '#17a2b8',
+        confirmButtonColor: '#007bff'
+      });
+    }
   </script>
 </head>
 <body>
@@ -67,15 +173,32 @@
   </header>
 
   <div class="container">
+    <!-- 絞り込みと並べ替えフォーム -->
+    <div class="filter-sort">
+      <select id="protocol-filter">
+        <option value="">全てのプロトコル</option>
+        <option value="tcp">TCP（Java版）</option>
+        <option value="udp">UDP（統合版）</option>
+      </select>
+      <select id="sort-order">
+        <option value="players-desc">プレイヤー数が多い順</option>
+        <option value="players-asc">プレイヤー数が少ない順</option>
+        <option value="name-asc">名前順（A→Z）</option>
+        <option value="name-desc">名前順（Z→A）</option>
+      </select>
+    </div>
+
     <div class="server-list">
       <% servers.forEach(server => { %>
-        <div class="server-card">
+        <div class="server-card <%= server.protocol === 'tcp' ? 'tcp' : 'udp' %>" data-players="<%= server.mcinfo.players %>" data-name="<%= server.サーバー名 %>">
           <div class="server-icon">
             <img src="<%= server.mcinfo.favicon %>" alt="サーバーアイコン" class="favicon">
           </div>
           <div class="server-info">
             <div class="server-name-version">
-              <h2 class="server-title"><%= server.サーバー名 %></h2>
+              <h2 class="server-title" onclick="showServerDetails(<%= JSON.stringify(server) %>)">
+                <%= server.サーバー名 %>
+              </h2>
               <div class="version"><%= server.mcinfo.version %></div>
             </div>
             <div class="server-connect">
@@ -88,12 +211,60 @@
               <span class="player-count"><span class="count-label">プレイヤー数</span> <%= server.mcinfo.players %></span>
             </div>
             <div class="server-motd">
-              <span class="motd"><%= server.mcinfo.motd %></span>
+              <span class="motd"><%- minecraftColorToHtml(server.mcinfo.motd) %></span>
             </div>
           </div>
         </div>
       <% }) %>
     </div>
   </div>
+
+  <script>
+    // 絞り込みと並べ替え機能の実装
+    const protocolFilter = document.getElementById('protocol-filter');
+    const sortOrder = document.getElementById('sort-order');
+    const serverList = document.querySelector('.server-list');
+    const serverCards = Array.from(document.querySelectorAll('.server-card'));
+
+    // フィルタリング関数
+    protocolFilter.addEventListener('change', filterServers);
+    sortOrder.addEventListener('change', sortServers);
+
+    function filterServers() {
+      const selectedProtocol = protocolFilter.value;
+      serverCards.forEach(card => {
+        const protocol = card.classList.contains('tcp') ? 'tcp' : 'udp';
+        if (selectedProtocol === '' || selectedProtocol === protocol) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function sortServers() {
+      const sortValue = sortOrder.value;
+      let sortedServers = [...serverCards];
+      
+      if (sortValue === 'players-desc') {
+        sortedServers.sort((a, b) => b.getAttribute('data-players') - a.getAttribute('data-players'));
+      } else if (sortValue === 'players-asc') {
+        sortedServers.sort((a, b) => a.getAttribute('data-players') - b.getAttribute('data-players'));
+      } else if (sortValue === 'name-asc') {
+        sortedServers.sort((a, b) => a.getAttribute('data-name').localeCompare(b.getAttribute('data-name')));
+      } else if (sortValue === 'name-desc') {
+        sortedServers.sort((a, b) => b.getAttribute('data-name').localeCompare(a.getAttribute('data-name')));
+      }
+
+      // サーバーカードを並べ替えた順番で再配置
+      sortedServers.forEach(card => {
+        serverList.appendChild(card);
+      });
+    }
+
+    // 初期表示時にソートを適用
+    sortServers();
+  </script>
 </body>
+
 </html>

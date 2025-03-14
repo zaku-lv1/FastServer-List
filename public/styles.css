@@ -65,21 +65,22 @@
     justify-items: center;
   }
   
-  /* サーバーカード */
-  .server-card {
-    display: flex;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    width: 100%;
-  }
-  
-  .server-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-  }
+/* サーバーカードの遷移時間をゆっくりに変更 */
+.server-card {
+  display: flex;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.5s ease, box-shadow 0.5s ease; /* ここで遷移時間を0.5秒に設定 */
+  width: 100%;
+}
+
+.server-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
   
   /* サーバー情報 */
   .server-info {
@@ -189,5 +190,39 @@
     .server-list {
       grid-template-columns: 1fr;
     }
+  }
+  /* MOTDのデザイン */
+  .motd {
+    background-color: #000000;  /* 背景色を黒に設定 */
+    color: #FFFFFF;  /* デフォルトの文字色は白 */
+    padding: 10px;  /* 内部余白を追加 */
+    border-radius: 5px;  /* 丸みを帯びた角 */
+    font-family: 'Arial', sans-serif;  /* フォントを指定 */
+    font-size: 16px;  /* フォントサイズを調整 */
+    line-height: 1.5;  /* 行間を少し広げて読みやすく */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  /* ボックスシャドウを追加して浮き上がらせる */
+    width: 100%;  /* 幅を全体に広げる */
+    max-width: 600px;  /* 最大幅を設定 */
+    margin: 20px auto;  /* 上下の余白を設定し、中央に配置 */
+    text-align: left;  /* 左揃え */
+    white-space: pre-wrap;  /* 改行を反映させる */
+  }
+
+  .motd span {
+    font-weight: bold;  /* フォントを太字に */
+  }
+
+  .filter-sort {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  .filter-sort select {
+    padding: 10px;
+    font-size: 1em;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 45%;
   }
   
