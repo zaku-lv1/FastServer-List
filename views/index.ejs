@@ -5,6 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>サーバーリスト</title>
   <link rel="stylesheet" href="/styles.css">
+  
+  <!-- SweetAlert2のCDNを追加 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    /* サーバーアドレスリンクのスタイリング */
+    .connect-key a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .connect-key a:hover {
+      color: #0056b3;
+      border-color: #0056b3;
+    }
+
+    .connect-key a:active {
+      color: #004085;
+    }
+  </style>
+
+  <script>
+    // クリップボードにコピーする関数
+    function copyToClipboard(text) {
+      // テキストエリアを作成してコピーを実行
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      // SweetAlertでコピー成功の通知
+      Swal.fire({
+        title: '完了!',
+        text: 'サーバーアドレスをコピーしました',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        background: '#f0f8ff',
+        color: '#333',
+        iconColor: '#28a745',
+        confirmButtonColor: '#007bff'
+      });
+    }
+  </script>
 </head>
 <body>
   <!-- ヘッダー -->
@@ -31,7 +79,12 @@
               <div class="version"><%= server.mcinfo.version %></div>
             </div>
             <div class="server-connect">
-              <span class="connect-key"><span class="key-label">接続キー</span> <%= server.connect_key %></span>
+              <span class="connect-key">
+                <span class="key-label">サーバーアドレス</span>
+                <a href="javascript:void(0);" onclick="copyToClipboard('<%= server.connect_key %>.zcnc.me')">
+                  <%= server.connect_key %>.zcnc.me
+                </a>
+              </span>
               <span class="player-count"><span class="count-label">プレイヤー数</span> <%= server.mcinfo.players %></span>
             </div>
             <div class="server-motd">
