@@ -92,8 +92,6 @@
       box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
       transition: background-color 0.3s ease;
     }
-
-=======
   
   <style>
     /* サーバーアドレスリンクのスタイリング */
@@ -139,29 +137,40 @@
       });
     }
 
-    // サーバー名クリック時に詳細を表示する関数
-    function showServerDetails(server) {
-      // サーバーのMOTDにMinecraftカラーコードを適用
-      const formattedMOTD = minecraftColorToHtml(server.mcinfo.motd);
+  // サーバー名クリック時に詳細を表示する関数
+  function showServerDetails(server) {
+    // サーバーのMOTDにMinecraftカラーコードを適用
+    const formattedMOTD = minecraftColorToHtml(server.mcinfo.motd);
 
-      // SweetAlertでサーバーの詳細情報を表示
-      Swal.fire({
-        title: server.サーバー名,
-        html: `
-          <strong>バージョン:</strong> ${server.mcinfo.version} <br>
-          <strong>プレイヤー数:</strong> ${server.mcinfo.players} <br>
-          <strong>サーバーアドレス:</strong> ${server.connect_key}.zcnc.me <br><br>
-          <span class="motd">${formattedMOTD}</span>  <!-- ここでカラーコードが適用されたMOTDを表示 -->
-        `,
-        icon: 'info',
-        confirmButtonText: '閉じる',
-        background: '#f0f8ff',
-        color: '#333',
-        iconColor: '#17a2b8',
-        confirmButtonColor: '#007bff'
-      });
-    }
-  </script>
+    // サーバー作成日時と更新日時をフォーマット（例: yyyy/mm/dd）
+    const createdAt = new Date(server.created_at);
+    const updatedAt = new Date(server.updated_at);
+
+    const createdAtFormatted = createdAt.toLocaleDateString('ja-JP');
+    const updatedAtFormatted = updatedAt.toLocaleDateString('ja-JP');
+
+    // SweetAlertでサーバーの詳細情報を表示
+    Swal.fire({
+      title: server.サーバー名,
+      html: `
+        <strong>バージョン:</strong> ${server.mcinfo.version} <br>
+        <strong>プロトコル:</strong> ${server.protocol === 'tcp' ? 'TCP（Java版）' : 'UDP（統合版）'} <br>
+        <strong>プレイヤー数:</strong> ${server.mcinfo.players} <br>
+        <strong>サーバーアドレス:</strong> ${server.connect_key}.zcnc.me <br><br>
+        <strong>作成日時:</strong> ${createdAtFormatted} <br>
+        <strong>更新日時:</strong> ${updatedAtFormatted} <br><br>
+        <span class="motd">${formattedMOTD}</span>  <!-- ここでカラーコードが適用されたMOTDを表示 -->
+      `,
+      icon: 'info',
+      confirmButtonText: '閉じる',
+      background: '#f0f8ff',
+      color: '#333',
+      iconColor: '#17a2b8',
+      confirmButtonColor: '#007bff'
+    });
+  }
+</script>
+
 </head>
 <body>
   <!-- ヘッダー -->
@@ -222,8 +231,30 @@
     </div>
   </div>
 
-  <script>
-    // 絞り込みと並べ替え機能の実装
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // クリップボードにコピーする関数
+    function copyToClipboard(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      Swal.fire({
+        title: '完了!',
+        text: 'サーバーアドレスをコピーしました',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        background: '#f0f8ff',
+        color: '#333',
+        iconColor: '#28a745',
+        confirmButtonColor: '#007bff'
+      });
+    }
+
+    // プレイヤー数で並べ替え機能の実装
     const protocolFilter = document.getElementById('protocol-filter');
     const sortOrder = document.getElementById('sort-order');
     const serverList = document.querySelector('.server-list');
@@ -250,9 +281,13 @@
       let sortedServers = [...serverCards];
       
       if (sortValue === 'players-desc') {
-        sortedServers.sort((a, b) => b.getAttribute('data-players') - a.getAttribute('data-players'));
+        sortedServers.sort((a, b) => {
+          return parseInt(b.getAttribute('data-players')) - parseInt(a.getAttribute('data-players'));
+        });
       } else if (sortValue === 'players-asc') {
-        sortedServers.sort((a, b) => a.getAttribute('data-players') - b.getAttribute('data-players'));
+        sortedServers.sort((a, b) => {
+          return parseInt(a.getAttribute('data-players')) - parseInt(b.getAttribute('data-players'));
+        });
       } else if (sortValue === 'name-asc') {
         sortedServers.sort((a, b) => a.getAttribute('data-name').localeCompare(b.getAttribute('data-name')));
       } else if (sortValue === 'name-desc') {
@@ -267,7 +302,9 @@
 
     // 初期表示時にソートを適用
     sortServers();
-  </script>
+  });
+</script>
+
 </body>
 
 </html>
