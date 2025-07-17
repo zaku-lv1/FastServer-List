@@ -13,13 +13,119 @@ app.use(express.static('public'));
 app.get('/', async (req, res) => {
   try {
     // APIリクエスト
-    const response = await axios.get('https://api.zpw.jp/connect/serverlist.php');
+    const response = await axios.get('https://api.zpw.jp/connect/serverlist.php', {
+      timeout: 5000 // 5秒でタイムアウト
+    });
+    
+    // APIレスポンスの構造を確認し、サーバーデータを取得
+    let servers = [];
+    if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      servers = response.data.data;
+    } else if (Array.isArray(response.data)) {
+      servers = response.data;
+    }
     
     // レスポンスデータをビューに渡してレンダリング
-    res.render('index', { servers: response.data.data });
+    res.render('index', { servers: servers });
   } catch (error) {
-    console.error(error);
-    res.status(500).send('サーバーリストの取得に失敗しました。');
+    console.error('API取得エラー:', error.message);
+    
+    // APIが利用できない場合のフォールバックデータ
+    const fallbackServers = [
+      {
+        "サーバー名": "サンプルサーバー1",
+        "connect_key": "sample1",
+        "protocol": "tcp",
+        "mcinfo": {
+          "version": "1.20.1",
+          "players": "5",
+          "motd": "§aサンプルサーバーです §b- §eAPIが利用できません",
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+        },
+        "created_at": new Date().toISOString(),
+        "updated_at": new Date().toISOString()
+      },
+      {
+        "サーバー名": "サンプルサーバー2",
+        "connect_key": "sample2", 
+        "protocol": "udp",
+        "mcinfo": {
+          "version": "1.20.1",
+          "players": "3",
+          "motd": "§cAPIエラー時のフォールバック §6データです",
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+        },
+        "created_at": new Date().toISOString(),
+        "updated_at": new Date().toISOString()
+      }
+    ];
+    
+    // フォールバックデータでレンダリング（エラーページではなく）
+    res.render('index', { 
+      servers: fallbackServers,
+      apiError: true,
+      errorMessage: 'APIサーバーが一時的に利用できません。フォールバックデータを表示しています。'
+    });
+  }
+});
+
+// APIエンドポイント（クライアントサイド用）
+app.get('/api/servers', async (req, res) => {
+  try {
+    // APIリクエスト
+    const response = await axios.get('https://api.zpw.jp/connect/serverlist.php', {
+      timeout: 5000 // 5秒でタイムアウト
+    });
+    
+    // APIレスポンスの構造を確認し、サーバーデータを取得
+    let servers = [];
+    if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      servers = response.data.data;
+    } else if (Array.isArray(response.data)) {
+      servers = response.data;
+    }
+    
+    // JSON形式でレスポンス
+    res.json({ success: true, data: servers });
+  } catch (error) {
+    console.error('API取得エラー:', error.message);
+    
+    // APIが利用できない場合のフォールバックデータ
+    const fallbackServers = [
+      {
+        "サーバー名": "サンプルサーバー1",
+        "connect_key": "sample1",
+        "protocol": "tcp",
+        "mcinfo": {
+          "version": "1.20.1",
+          "players": "5",
+          "motd": "§aサンプルサーバーです §b- §eAPIが利用できません",
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+        },
+        "created_at": new Date().toISOString(),
+        "updated_at": new Date().toISOString()
+      },
+      {
+        "サーバー名": "サンプルサーバー2",
+        "connect_key": "sample2", 
+        "protocol": "udp",
+        "mcinfo": {
+          "version": "1.20.1",
+          "players": "3",
+          "motd": "§cAPIエラー時のフォールバック §6データです",
+          "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+        },
+        "created_at": new Date().toISOString(),
+        "updated_at": new Date().toISOString()
+      }
+    ];
+    
+    // エラー時もJSONで返す
+    res.json({ 
+      success: false, 
+      data: fallbackServers,
+      error: 'APIサーバーが一時的に利用できません。フォールバックデータを表示しています。'
+    });
   }
 });
 

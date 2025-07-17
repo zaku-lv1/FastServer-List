@@ -16,9 +16,49 @@ A modern, beautiful, and responsive Minecraft server list application that works
 - **Interactive Stats** - Animated counters showing server statistics
 - **Loading Animations** - Smooth loading experience with modern effects
 
-## 🚀 Live Demo
+## 🚀 Deployment Options
 
-Visit the live version: [FastServer Connect](https://your-username.github.io/FastServer-List/)
+This project supports **two deployment methods**:
+
+### 1. GitHub Pages (Static Hosting) 
+- **File**: `index.html` + `app.js`
+- **Setup**: Enable GitHub Pages in repository settings
+- **Features**: Client-side API integration with fallback handling
+- **Best for**: Easy deployment, no server maintenance
+
+### 2. Express.js Server
+- **File**: `index.js` (Node.js server)
+- **Setup**: `npm install && node index.js`
+- **Features**: Server-side rendering with EJS templates, robust error handling
+- **Best for**: Custom server deployments, enhanced error handling
+
+Both options include:
+- ✅ **Automatic API fallback** when main API is unavailable
+- ✅ **Comprehensive error handling** with user-friendly messages  
+- ✅ **Minecraft color code support** in MOTD display
+- ✅ **Real-time filtering and sorting**
+- ✅ **Responsive design** for all devices
+
+## 🔧 API Integration & Error Handling
+
+The application now includes **robust API integration** with multiple fallback mechanisms:
+
+### Primary API
+```
+https://api.zpw.jp/connect/serverlist.php
+```
+
+### Fallback Mechanisms
+1. **Timeout handling** (5 seconds)
+2. **Fallback API endpoint** (`/api/servers` for Express.js version)
+3. **Sample data display** when APIs are unavailable
+4. **User notifications** about API status
+
+### Error Handling Features
+- ⚠️ **Clear warnings** when API is temporarily unavailable
+- 🔄 **Automatic fallback** to sample data
+- 📊 **Maintained functionality** even during API outages
+- 🎨 **Consistent UI experience** regardless of API status
 
 ## 📱 Screenshots
 
