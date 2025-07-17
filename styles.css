@@ -215,64 +215,7 @@ body {
     font-weight: 500;
 }
 
-/* Real-time Update Controls */
-.update-controls {
-    margin-top: 40px;
-    padding: 25px;
-    background: var(--card-bg);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-light);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.update-status {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.status-indicator {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 500;
-}
-
-#status-dot {
-    font-size: 0.8rem;
-    transition: var(--transition);
-}
-
-#status-dot.online {
-    color: var(--success-color);
-    animation: pulse 2s infinite;
-}
-
-#status-dot.updating {
-    color: var(--warning-color);
-    animation: spin 1s linear infinite;
-}
-
-#status-dot.offline {
-    color: var(--danger-color);
-}
-
-.last-update {
-    font-size: 0.9rem;
-    color: var(--text-light);
-}
-
-.update-actions {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-/* Refresh button styles removed - manual refresh functionality removed */
+/* Status indicator styles removed - auto-refresh runs silently */
 
 /* Animations */
 @keyframes pulse {
@@ -665,16 +608,6 @@ body {
     .stats-grid {
         grid-template-columns: 1fr;
     }
-    
-    .update-controls {
-        flex-direction: column;
-        align-items: stretch;
-        text-align: center;
-    }
-    
-    .update-actions {
-        justify-content: center;
-    }
 }
 
 @media (max-width: 480px) {
@@ -692,15 +625,6 @@ body {
     
     .server-content {
         padding: 20px;
-    }
-    
-    .update-controls {
-        padding: 20px;
-        gap: 15px;
-    }
-    
-    .update-actions {
-        gap: 15px;
     }
 }
 
