@@ -150,9 +150,7 @@ class FastServerApp {
         protocolFilter.addEventListener('change', () => this.applyFilters());
         sortOrder.addEventListener('change', () => this.applyFilters());
         
-        // Manual refresh button
-        const refreshBtn = document.getElementById('refresh-btn');
-        refreshBtn.addEventListener('click', () => this.manualRefresh());
+        // Manual refresh button removed - auto-refresh runs continuously in background
     }
 
     handleSearch(searchTerm) {
@@ -532,19 +530,6 @@ class FastServerApp {
         if (this.refreshInterval) {
             clearInterval(this.refreshInterval);
             this.refreshInterval = null;
-        }
-    }
-
-    async manualRefresh() {
-        if (this.isUpdating) return;
-        
-        const refreshBtn = document.getElementById('refresh-btn');
-        refreshBtn.classList.add('spinning');
-        
-        try {
-            await this.loadServers(true);
-        } finally {
-            refreshBtn.classList.remove('spinning');
         }
     }
 
