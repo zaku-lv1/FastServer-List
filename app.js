@@ -4,7 +4,7 @@ class FastServerApp {
         this.servers = [];
         this.filteredServers = [];
         this.isLoading = true;
-        this.autoRefreshEnabled = true;
+        this.autoRefreshEnabled = true; // Always enabled
         this.refreshInterval = null;
         this.refreshIntervalTime = 30000; // 30 seconds
         this.lastUpdateTime = null;
@@ -120,13 +120,14 @@ class FastServerApp {
         } catch (error) {
             console.error('Error loading servers:', error);
             if (!isRefresh) {
-                // API failed completely on initial load - show no servers
+                // API failed completely on initial load - show network error
                 this.servers = [];
                 this.filteredServers = [];
+                this.showNetworkError('初期読み込み時にネットワークエラーが発生しました。インターネット接続を確認してください。');
             }
             if (isRefresh) {
                 this.updateStatusIndicator('offline');
-                this.showUpdateNotification('サーバーリストの更新に失敗しました', 'error');
+                this.showNetworkError('ネットワークに接続できません。インターネット接続を確認してください。');
             }
         } finally {
             if (isRefresh) {
@@ -149,19 +150,9 @@ class FastServerApp {
         protocolFilter.addEventListener('change', () => this.applyFilters());
         sortOrder.addEventListener('change', () => this.applyFilters());
         
-        // Real-time update controls
+        // Manual refresh button
         const refreshBtn = document.getElementById('refresh-btn');
-        const autoRefreshToggle = document.getElementById('auto-refresh-toggle');
-        
         refreshBtn.addEventListener('click', () => this.manualRefresh());
-        autoRefreshToggle.addEventListener('change', (e) => {
-            this.autoRefreshEnabled = e.target.checked;
-            if (this.autoRefreshEnabled) {
-                this.startAutoRefresh();
-            } else {
-                this.stopAutoRefresh();
-            }
-        });
     }
 
     handleSearch(searchTerm) {
@@ -529,13 +520,12 @@ class FastServerApp {
             clearInterval(this.refreshInterval);
         }
         
-        if (this.autoRefreshEnabled) {
-            this.refreshInterval = setInterval(() => {
-                if (!this.isUpdating) {
-                    this.loadServers(true);
-                }
-            }, this.refreshIntervalTime);
-        }
+        // Always start auto-refresh since we removed the toggle
+        this.refreshInterval = setInterval(() => {
+            if (!this.isUpdating) {
+                this.loadServers(true);
+            }
+        }, this.refreshIntervalTime);
     }
 
     stopAutoRefresh() {
@@ -651,6 +641,27 @@ class FastServerApp {
                 }
             }, 300);
         }, 3000);
+    }
+
+    showNetworkError(message) {
+        Swal.fire({
+            title: 'ネットワークエラー',
+            text: message,
+            icon: 'error',
+            iconColor: '#ff6b6b',
+            confirmButtonText: '再試行',
+            confirmButtonColor: '#667eea',
+            showCancelButton: true,
+            cancelButtonText: 'OK',
+            cancelButtonColor: '#ff6b6b',
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdrop: 'rgba(0, 0, 0, 0.4)'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Retry loading servers
+                this.loadServers(true);
+            }
+        });
     }
 
     hideLoading() {
