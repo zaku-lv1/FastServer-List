@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastServer Connect - サーバーリスト</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2>サーバーリストを読み込み中...</h2>
+            <p>最新のMinecraftサーバー情報を取得しています</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-background"></div>
+            <div class="header-content">
+                <div class="logo-container">
+                    <img src="public/logo.webp" alt="FastServer Logo" class="logo" 
+                         onerror="this.style.display='none'">
+                </div>
+                <div class="header-title">
+                    <h1>FastServer Connect</h1>
+                    <p>高速・安定・無料のMinecraftサーバーリスト</p>
+                </div>
+            </div>
+            <div class="header-particles"></div>
+        </header>
+
+        <!-- Stats Section -->
+        <section class="stats-section">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-server"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="total-servers">-</div>
+                            <div class="stat-label">総サーバー数</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="total-players">-</div>
+                            <div class="stat-label">総プレイヤー数</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="online-servers">-</div>
+                            <div class="stat-label">オンラインサーバー</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filter and Search Section -->
+        <section class="controls-section">
+            <div class="container">
+                <div class="controls-grid">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-input" placeholder="サーバー名で検索...">
+                    </div>
+                    <div class="filter-group">
+                        <select id="protocol-filter" class="modern-select">
+                            <option value="">全てのプロトコル</option>
+                            <option value="tcp">TCP（Java版）</option>
+                            <option value="udp">UDP（統合版）</option>
+                        </select>
+                        <select id="sort-order" class="modern-select">
+                            <option value="players-desc">プレイヤー数が多い順</option>
+                            <option value="players-asc">プレイヤー数が少ない順</option>
+                            <option value="name-asc">名前順（A→Z）</option>
+                            <option value="name-desc">名前順（Z→A）</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Server List -->
+        <main class="container">
+            <div class="server-list" id="server-list">
+                <!-- Servers will be dynamically loaded here -->
+            </div>
+            
+            <!-- No Results Message -->
+            <div id="no-results" class="no-results" style="display: none;">
+                <div class="no-results-content">
+                    <i class="fas fa-search"></i>
+                    <h3>検索結果が見つかりません</h3>
+                    <p>検索条件を変更してもう一度お試しください。</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-section">
+                        <h3>FastServer Connect</h3>
+                        <p>最高のMinecraftサーバー体験を提供します。</p>
+                    </div>
+                    <div class="footer-section">
+                        <h4>サポート</h4>
+                        <ul>
+                            <li><a href="#">よくある質問</a></li>
+                            <li><a href="#">お問い合わせ</a></li>
+                            <li><a href="#">技術サポート</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-section">
+                        <h4>コミュニティ</h4>
+                        <ul>
+                            <li><a href="#">Discord</a></li>
+                            <li><a href="#">Twitter</a></li>
+                            <li><a href="#">GitHub</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2024 FastServer Connect. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
