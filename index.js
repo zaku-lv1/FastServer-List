@@ -13,7 +13,7 @@ app.use(express.static('public'));
 app.get('/', async (req, res) => {
   try {
     // APIリクエスト
-    const response = await axios.get('https://api.zpw.jp/connect/serverlist.php', {
+    const response = await axios.get('https://script.google.com/macros/s/AKfycbyQX2O29UD5hJqNOsmoyxXDdPaTX0ZGmfUuwdmUXpps6Gk9zSBEpO80spmN_lnMIegqpg/exec', {
       timeout: 5000 // 5秒でタイムアウト
     });
     
@@ -73,7 +73,7 @@ app.get('/', async (req, res) => {
 app.get('/api/servers', async (req, res) => {
   try {
     // APIリクエスト
-    const response = await axios.get('https://api.zpw.jp/connect/serverlist.php', {
+    const response = await axios.get('https://script.google.com/macros/s/AKfycbyQX2O29UD5hJqNOsmoyxXDdPaTX0ZGmfUuwdmUXpps6Gk9zSBEpO80spmN_lnMIegqpg/exec', {
       timeout: 5000 // 5秒でタイムアウト
     });
     

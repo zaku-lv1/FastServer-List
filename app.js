@@ -30,7 +30,7 @@ class FastServerApp {
             let response, data;
             
             try {
-                response = await fetch('https://api.zpw.jp/connect/serverlist.php');
+                response = await fetch('https://script.google.com/macros/s/AKfycbyQX2O29UD5hJqNOsmoyxXDdPaTX0ZGmfUuwdmUXpps6Gk9zSBEpO80spmN_lnMIegqpg/exec');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
