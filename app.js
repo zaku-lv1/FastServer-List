@@ -4,6 +4,11 @@ class FastServerApp {
         this.servers = [];
         this.filteredServers = [];
         this.isLoading = true;
+        this.autoRefreshEnabled = true;
+        this.refreshInterval = null;
+        this.refreshIntervalTime = 30000; // 30 seconds
+        this.lastUpdateTime = null;
+        this.isUpdating = false;
         
         this.initializeApp();
     }
@@ -15,22 +20,36 @@ class FastServerApp {
             this.updateStats();
             this.renderServers();
             this.hideLoading();
+            this.startAutoRefresh();
+            this.updateLastRefreshTime();
+            this.updateStatusIndicator('online');
         } catch (error) {
             console.error('Failed to initialize app:', error);
             // Don't show error message since we have fallback data
             this.updateStats();
             this.renderServers();
             this.hideLoading();
+            this.updateStatusIndicator('offline');
         }
     }
 
-    async loadServers() {
+    async loadServers(isRefresh = false) {
+        if (isRefresh) {
+            this.updateStatusIndicator('updating');
+            this.isUpdating = true;
+        }
+        
         try {
             // 最初にプライマリAPIを試す
             let response, data;
             
             try {
-                response = await fetch('https://script.google.com/macros/s/AKfycbyQX2O29UD5hJqNOsmoyxXDdPaTX0ZGmfUuwdmUXpps6Gk9zSBEpO80spmN_lnMIegqpg/exec');
+                // Add cache-busting parameter for refresh calls
+                const apiUrl = isRefresh 
+                    ? `https://script.google.com/macros/s/AKfycbyQX2O29UD5hJqNOsmoyxXDdPaTX0ZGmfUuwdmUXpps6Gk9zSBEpO80spmN_lnMIegqpg/exec?t=${Date.now()}`
+                    : 'https://script.google.com/macros/s/AKfycbyQX2O29UD5hJqNOsmoyxXDdPaTX0ZGmfUuwdmUXpps6Gk9zSBEpO80spmN_lnMIegqpg/exec';
+                
+                response = await fetch(apiUrl);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -40,7 +59,10 @@ class FastServerApp {
                 
                 // フォールバックとしてローカルAPIエンドポイントを使用
                 try {
-                    response = await fetch('/api/servers');
+                    const fallbackUrl = isRefresh 
+                        ? `/api/servers?t=${Date.now()}`
+                        : '/api/servers';
+                    response = await fetch(fallbackUrl);
                     if (!response.ok) {
                         throw new Error(`Fallback API error! status: ${response.status}`);
                     }
@@ -60,6 +82,8 @@ class FastServerApp {
             }
             
             if (data && data.data && Array.isArray(data.data)) {
+                const hasChanges = this.hasDataChanged(data.data);
+                
                 if (data.data.length === 0) {
                     // API succeeded but returned empty data
                     console.log('API returned empty server list');
@@ -70,17 +94,44 @@ class FastServerApp {
                     this.servers = data.data;
                     this.filteredServers = [...this.servers];
                 }
+                
+                if (isRefresh) {
+                    this.lastUpdateTime = new Date();
+                    this.updateLastRefreshTime();
+                    this.updateStatusIndicator('online');
+                    
+                    if (hasChanges) {
+                        this.updateStats();
+                        this.applyFilters(); // Re-render with current filters
+                        this.showUpdateNotification('サーバーリストが更新されました');
+                    }
+                }
             } else {
                 // API returned invalid format
                 console.error('API returned invalid data format:', data);
-                this.servers = [];
-                this.filteredServers = [];
+                if (!isRefresh) {
+                    this.servers = [];
+                    this.filteredServers = [];
+                }
+                if (isRefresh) {
+                    this.updateStatusIndicator('offline');
+                }
             }
         } catch (error) {
             console.error('Error loading servers:', error);
-            // API failed completely - show no servers
-            this.servers = [];
-            this.filteredServers = [];
+            if (!isRefresh) {
+                // API failed completely on initial load - show no servers
+                this.servers = [];
+                this.filteredServers = [];
+            }
+            if (isRefresh) {
+                this.updateStatusIndicator('offline');
+                this.showUpdateNotification('サーバーリストの更新に失敗しました', 'error');
+            }
+        } finally {
+            if (isRefresh) {
+                this.isUpdating = false;
+            }
         }
     }
 
@@ -97,6 +148,20 @@ class FastServerApp {
         
         protocolFilter.addEventListener('change', () => this.applyFilters());
         sortOrder.addEventListener('change', () => this.applyFilters());
+        
+        // Real-time update controls
+        const refreshBtn = document.getElementById('refresh-btn');
+        const autoRefreshToggle = document.getElementById('auto-refresh-toggle');
+        
+        refreshBtn.addEventListener('click', () => this.manualRefresh());
+        autoRefreshToggle.addEventListener('change', (e) => {
+            this.autoRefreshEnabled = e.target.checked;
+            if (this.autoRefreshEnabled) {
+                this.startAutoRefresh();
+            } else {
+                this.stopAutoRefresh();
+            }
+        });
     }
 
     handleSearch(searchTerm) {
@@ -432,6 +497,162 @@ class FastServerApp {
         return div.innerHTML;
     }
 
+    // Real-time update methods
+    hasDataChanged(newData) {
+        if (this.servers.length !== newData.length) {
+            return true;
+        }
+        
+        // Simple comparison - check if any server data has changed
+        for (let i = 0; i < this.servers.length; i++) {
+            const oldServer = this.servers[i];
+            const newServer = newData[i];
+            
+            if (!oldServer || !newServer) {
+                return true;
+            }
+            
+            // Check key fields that might change
+            if (oldServer.mcinfo.players !== newServer.mcinfo.players ||
+                oldServer.mcinfo.motd !== newServer.mcinfo.motd ||
+                oldServer.mcinfo.version !== newServer.mcinfo.version ||
+                oldServer.updated_at !== newServer.updated_at) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    startAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+        }
+        
+        if (this.autoRefreshEnabled) {
+            this.refreshInterval = setInterval(() => {
+                if (!this.isUpdating) {
+                    this.loadServers(true);
+                }
+            }, this.refreshIntervalTime);
+        }
+    }
+
+    stopAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+        }
+    }
+
+    async manualRefresh() {
+        if (this.isUpdating) return;
+        
+        const refreshBtn = document.getElementById('refresh-btn');
+        refreshBtn.classList.add('spinning');
+        
+        try {
+            await this.loadServers(true);
+        } finally {
+            refreshBtn.classList.remove('spinning');
+        }
+    }
+
+    updateStatusIndicator(status) {
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('update-status-text');
+        
+        // Remove all status classes
+        statusDot.classList.remove('online', 'updating', 'offline');
+        
+        switch (status) {
+            case 'online':
+                statusDot.classList.add('online');
+                statusText.textContent = 'オンライン';
+                break;
+            case 'updating':
+                statusDot.classList.add('updating');
+                statusText.textContent = '更新中...';
+                break;
+            case 'offline':
+                statusDot.classList.add('offline');
+                statusText.textContent = 'オフライン';
+                break;
+        }
+    }
+
+    updateLastRefreshTime() {
+        const lastUpdateElement = document.getElementById('last-update-time');
+        if (this.lastUpdateTime) {
+            const now = new Date();
+            const diffMinutes = Math.floor((now - this.lastUpdateTime) / 60000);
+            
+            if (diffMinutes < 1) {
+                lastUpdateElement.textContent = 'たった今';
+            } else if (diffMinutes < 60) {
+                lastUpdateElement.textContent = `${diffMinutes}分前`;
+            } else {
+                const diffHours = Math.floor(diffMinutes / 60);
+                lastUpdateElement.textContent = `${diffHours}時間前`;
+            }
+        } else {
+            lastUpdateElement.textContent = '-';
+        }
+        
+        // Update every minute
+        setTimeout(() => this.updateLastRefreshTime(), 60000);
+    }
+
+    showUpdateNotification(message, type = 'success') {
+        const iconClass = type === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle';
+        const iconColor = type === 'error' ? '#ff6b6b' : '#4ecdc4';
+        
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = 'update-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="${iconClass}" style="color: ${iconColor};"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        // Add notification styles
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            font-size: 0.9rem;
+            border-left: 4px solid ${iconColor};
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        const notificationContent = notification.querySelector('.notification-content');
+        notificationContent.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+
     hideLoading() {
         const loadingScreen = document.getElementById('loading-screen');
         const mainContent = document.getElementById('main-content');
@@ -451,6 +672,13 @@ class FastServerApp {
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new FastServerApp();
+    
+    // Clean up intervals when page is unloaded
+    window.addEventListener('beforeunload', () => {
+        if (window.app) {
+            window.app.stopAutoRefresh();
+        }
+    });
 });
 
 // Add some additional animations and interactions
