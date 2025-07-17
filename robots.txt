@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://1.fss.zaku79.me/sitemap.xml
+
+# Allow indexing of all pages
+Allow: /index.html
+Allow: /faq.html
+Allow: /styles.css
+Allow: /app.js
+Allow: /public/
+
+# Prevent crawling of certain file types if needed
+Disallow: /*.log$
+Disallow: /tmp/
