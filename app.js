@@ -27,90 +27,36 @@ class FastServerApp {
     async loadServers() {
         try {
             const response = await fetch('https://api.zpw.jp/connect/serverlist.php');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
             
-            if (data && data.data) {
-                this.servers = data.data;
-                this.filteredServers = [...this.servers];
+            if (data && data.data && Array.isArray(data.data)) {
+                if (data.data.length === 0) {
+                    // API succeeded but returned empty data
+                    console.log('API returned empty server list');
+                    this.servers = [];
+                    this.filteredServers = [];
+                } else {
+                    // API succeeded with data
+                    this.servers = data.data;
+                    this.filteredServers = [...this.servers];
+                }
             } else {
-                throw new Error('Invalid API response');
+                // API returned invalid format
+                console.error('API returned invalid data format:', data);
+                this.servers = [];
+                this.filteredServers = [];
             }
         } catch (error) {
             console.error('Error loading servers:', error);
-            // Fallback to demo data for testing
-            this.servers = this.getDemoData();
-            this.filteredServers = [...this.servers];
+            // API failed completely - show no servers
+            this.servers = [];
+            this.filteredServers = [];
         }
-    }
-
-    getDemoData() {
-        return [
-            {
-                "サーバー名": "Survival Paradise Server",
-                "connect_key": "survival01", 
-                "protocol": "tcp",
-                "mcinfo": {
-                    "version": "1.20.4",
-                    "players": "42",
-                    "motd": "§6§lSurvival Paradise §r§f- §aWelcome to the best survival experience!",
-                    "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-                },
-                "created_at": "2024-01-15T10:30:00Z",
-                "updated_at": "2024-07-17T08:45:00Z"
-            },
-            {
-                "サーバー名": "Creative Building Hub",
-                "connect_key": "creative01",
-                "protocol": "tcp", 
-                "mcinfo": {
-                    "version": "1.20.4",
-                    "players": "18",
-                    "motd": "§b§lCreative Hub §r§f- §eUnleash your creativity!",
-                    "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-                },
-                "created_at": "2024-02-20T14:15:00Z",
-                "updated_at": "2024-07-17T09:20:00Z"
-            },
-            {
-                "サーバー名": "Bedrock Adventure World",
-                "connect_key": "bedrock01",
-                "protocol": "udp",
-                "mcinfo": {
-                    "version": "1.20.40",
-                    "players": "28",
-                    "motd": "§c§lAdventure Awaits §r§f- §aBedrock Edition Server",
-                    "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-                },
-                "created_at": "2024-03-10T11:00:00Z", 
-                "updated_at": "2024-07-17T07:30:00Z"
-            },
-            {
-                "サーバー名": "PvP Arena Masters",
-                "connect_key": "pvp01",
-                "protocol": "tcp",
-                "mcinfo": {
-                    "version": "1.20.4",
-                    "players": "67",
-                    "motd": "§4§lPvP Arena §r§f- §cProve your combat skills!",
-                    "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-                },
-                "created_at": "2024-01-05T16:45:00Z",
-                "updated_at": "2024-07-17T10:15:00Z"
-            },
-            {
-                "サーバー名": "Peaceful Valley",
-                "connect_key": "peaceful01",
-                "protocol": "udp",
-                "mcinfo": {
-                    "version": "1.20.40", 
-                    "players": "12",
-                    "motd": "§2§lPeaceful Valley §r§f- §aRelax and build in peace",
-                    "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-                },
-                "created_at": "2024-04-01T09:20:00Z",
-                "updated_at": "2024-07-17T06:45:00Z"
-            }
-        ];
     }
 
     setupEventListeners() {
@@ -177,15 +123,28 @@ class FastServerApp {
     renderServers(serversToRender = this.filteredServers) {
         const serverList = document.getElementById('server-list');
         const noResults = document.getElementById('no-results');
+        const noServers = document.getElementById('no-servers');
         
         if (serversToRender.length === 0) {
             serverList.style.display = 'none';
-            noResults.style.display = 'block';
+            
+            // Check if we're filtering/searching vs no servers from API
+            if (this.servers.length === 0) {
+                // No servers from API at all
+                noResults.style.display = 'none';
+                noServers.style.display = 'block';
+            } else {
+                // We have servers from API but search/filter returned no results
+                noResults.style.display = 'block';
+                noServers.style.display = 'none';
+            }
             return;
         }
         
+        // We have servers to show
         serverList.style.display = 'grid';
         noResults.style.display = 'none';
+        noServers.style.display = 'none';
         
         serverList.innerHTML = serversToRender.map((server, index) => {
             const motdHtml = this.minecraftColorToHtml(server.mcinfo.motd);
