@@ -22,20 +22,17 @@ class FastServerApp {
             this.hideLoading();
             this.startAutoRefresh();
             this.updateLastRefreshTime();
-            this.updateStatusIndicator('online');
         } catch (error) {
             console.error('Failed to initialize app:', error);
             // Don't show error message since we have fallback data
             this.updateStats();
             this.renderServers();
             this.hideLoading();
-            this.updateStatusIndicator('offline');
         }
     }
 
     async loadServers(isRefresh = false) {
         if (isRefresh) {
-            this.updateStatusIndicator('updating');
             this.isUpdating = true;
         }
         
@@ -98,7 +95,6 @@ class FastServerApp {
                 if (isRefresh) {
                     this.lastUpdateTime = new Date();
                     this.updateLastRefreshTime();
-                    this.updateStatusIndicator('online');
                     
                     if (hasChanges) {
                         this.updateStats();
@@ -114,7 +110,7 @@ class FastServerApp {
                     this.filteredServers = [];
                 }
                 if (isRefresh) {
-                    this.updateStatusIndicator('offline');
+                    // Silently continue auto-refresh without notifying user
                 }
             }
         } catch (error) {
@@ -126,8 +122,7 @@ class FastServerApp {
                 this.showNetworkError('初期読み込み時にネットワークエラーが発生しました。インターネット接続を確認してください。');
             }
             if (isRefresh) {
-                this.updateStatusIndicator('offline');
-                this.showNetworkError('ネットワークに接続できません。インターネット接続を確認してください。');
+                // Silently continue auto-refresh without notifying user about connection issues
             }
         } finally {
             if (isRefresh) {
@@ -533,48 +528,19 @@ class FastServerApp {
         }
     }
 
-    updateStatusIndicator(status) {
-        const statusDot = document.getElementById('status-dot');
-        const statusText = document.getElementById('update-status-text');
-        
-        // Remove all status classes
-        statusDot.classList.remove('online', 'updating', 'offline');
-        
-        switch (status) {
-            case 'online':
-                statusDot.classList.add('online');
-                statusText.textContent = 'オンライン';
-                break;
-            case 'updating':
-                statusDot.classList.add('updating');
-                statusText.textContent = '更新中...';
-                break;
-            case 'offline':
-                statusDot.classList.add('offline');
-                statusText.textContent = 'オフライン';
-                break;
-        }
-    }
-
+    // Status indicator functionality removed - auto-refresh runs silently
+    // updateStatusIndicator method removed as per requirements
+    
     updateLastRefreshTime() {
-        const lastUpdateElement = document.getElementById('last-update-time');
+        // Only update time tracking, no visible status indicators
         if (this.lastUpdateTime) {
+            // Internal time tracking continues for functionality
             const now = new Date();
             const diffMinutes = Math.floor((now - this.lastUpdateTime) / 60000);
-            
-            if (diffMinutes < 1) {
-                lastUpdateElement.textContent = 'たった今';
-            } else if (diffMinutes < 60) {
-                lastUpdateElement.textContent = `${diffMinutes}分前`;
-            } else {
-                const diffHours = Math.floor(diffMinutes / 60);
-                lastUpdateElement.textContent = `${diffHours}時間前`;
-            }
-        } else {
-            lastUpdateElement.textContent = '-';
+            // Time tracking continues internally but no UI updates for status
         }
         
-        // Update every minute
+        // Update every minute for internal tracking
         setTimeout(() => this.updateLastRefreshTime(), 60000);
     }
 
