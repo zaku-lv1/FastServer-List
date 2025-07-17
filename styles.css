@@ -272,37 +272,7 @@ body {
     gap: 20px;
 }
 
-.refresh-btn {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: var(--transition);
-    font-size: 1.1rem;
-}
-
-.refresh-btn:hover {
-    background: var(--primary-dark);
-    transform: scale(1.05);
-}
-
-.refresh-btn:active {
-    transform: scale(0.95);
-}
-
-.refresh-btn i {
-    transition: transform 0.3s ease;
-}
-
-.refresh-btn.spinning i {
-    animation: spin 1s linear infinite;
-}
+/* Refresh button styles removed - manual refresh functionality removed */
 
 /* Animations */
 @keyframes pulse {
