@@ -129,10 +129,18 @@ class FastServerApp {
         // Apply sorting
         switch (sortOrder) {
             case 'players-desc':
-                filtered.sort((a, b) => parseInt(b.mcinfo.players) - parseInt(a.mcinfo.players));
+                filtered.sort((a, b) => {
+                    const playersA = parseInt(a.mcinfo.players || 0);
+                    const playersB = parseInt(b.mcinfo.players || 0);
+                    return (isNaN(playersB) ? 0 : playersB) - (isNaN(playersA) ? 0 : playersA);
+                });
                 break;
             case 'players-asc':
-                filtered.sort((a, b) => parseInt(a.mcinfo.players) - parseInt(b.mcinfo.players));
+                filtered.sort((a, b) => {
+                    const playersA = parseInt(a.mcinfo.players || 0);
+                    const playersB = parseInt(b.mcinfo.players || 0);
+                    return (isNaN(playersA) ? 0 : playersA) - (isNaN(playersB) ? 0 : playersB);
+                });
                 break;
             case 'name-asc':
                 filtered.sort((a, b) => a.サーバー名.localeCompare(b.サーバー名));
@@ -199,7 +207,10 @@ class FastServerApp {
                                 </div>
                                 <div class="detail-item">
                                     <i class="fas fa-users"></i>
-                                    <span class="detail-value">${server.mcinfo.players} プレイヤー</span>
+                                    <span class="detail-value">${(() => {
+                                        const players = parseInt(server.mcinfo.players || 0);
+                                        return isNaN(players) ? 0 : players;
+                                    })()} プレイヤー</span>
                                 </div>
                                 <div class="detail-item">
                                     <i class="fas fa-server"></i>
@@ -236,8 +247,11 @@ class FastServerApp {
     }
 
     updateStats() {
-        const totalServers = this.servers.filter(server => parseInt(server.mcinfo.players || 0) > 0).length;
-        const totalPlayers = this.servers.reduce((sum, server) => sum + parseInt(server.mcinfo.players || 0), 0);
+        const totalServers = this.servers.length;
+        const totalPlayers = this.servers.reduce((sum, server) => {
+            const players = parseInt(server.mcinfo.players || 0);
+            return sum + (isNaN(players) ? 0 : players);
+        }, 0);
         
         this.animateCounter('total-servers', totalServers);
         this.animateCounter('total-players', totalPlayers);
@@ -297,7 +311,10 @@ class FastServerApp {
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                         <div><strong>バージョン:</strong><br>${server.mcinfo.version}</div>
                         <div><strong>プロトコル:</strong><br>${protocolName}</div>
-                        <div><strong>プレイヤー数:</strong><br>${server.mcinfo.players}</div>
+                        <div><strong>プレイヤー数:</strong><br>${(() => {
+                            const players = parseInt(server.mcinfo.players || 0);
+                            return isNaN(players) ? 0 : players;
+                        })()}</div>
                         <div><strong>サーバーアドレス:</strong><br>${server.connect_key}.zcnc.me</div>
                         <div><strong>作成日時:</strong><br>${createdAt}</div>
                         <div><strong>更新日時:</strong><br>${updatedAt}</div>
