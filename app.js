@@ -236,13 +236,11 @@ class FastServerApp {
     }
 
     updateStats() {
-        const totalServers = this.servers.length;
+        const totalServers = this.servers.filter(server => parseInt(server.mcinfo.players || 0) > 0).length;
         const totalPlayers = this.servers.reduce((sum, server) => sum + parseInt(server.mcinfo.players || 0), 0);
-        const onlineServers = this.servers.filter(server => parseInt(server.mcinfo.players || 0) > 0).length;
         
         this.animateCounter('total-servers', totalServers);
         this.animateCounter('total-players', totalPlayers);
-        this.animateCounter('online-servers', onlineServers);
     }
 
     animateCounter(elementId, targetValue) {
