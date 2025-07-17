@@ -26,13 +26,38 @@ class FastServerApp {
 
     async loadServers() {
         try {
-            const response = await fetch('https://api.zpw.jp/connect/serverlist.php');
+            // 最初にプライマリAPIを試す
+            let response, data;
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            try {
+                response = await fetch('https://api.zpw.jp/connect/serverlist.php');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                data = await response.json();
+            } catch (apiError) {
+                console.log('Primary API failed, trying fallback API endpoint:', apiError.message);
+                
+                // フォールバックとしてローカルAPIエンドポイントを使用
+                try {
+                    response = await fetch('/api/servers');
+                    if (!response.ok) {
+                        throw new Error(`Fallback API error! status: ${response.status}`);
+                    }
+                    data = await response.json();
+                    
+                    if (data.success) {
+                        data = { data: data.data };
+                    } else {
+                        // フォールバックAPIもエラーだが、データがある場合は使用
+                        data = { data: data.data };
+                        console.warn('Using fallback data due to API error:', data.error);
+                    }
+                } catch (fallbackError) {
+                    console.log('Fallback API also failed:', fallbackError.message);
+                    throw fallbackError;
+                }
             }
-            
-            const data = await response.json();
             
             if (data && data.data && Array.isArray(data.data)) {
                 if (data.data.length === 0) {

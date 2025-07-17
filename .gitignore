@@ -90,3 +90,5 @@ logs
 
 # Temporary files
 /tmp/
+# Test files
+test-*.js

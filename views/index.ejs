@@ -185,6 +185,13 @@
   </header>
 
   <div class="container">
+    <% if (typeof apiError !== 'undefined' && apiError) { %>
+      <!-- API エラー通知 -->
+      <div style="background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 5px; padding: 15px; margin-bottom: 20px; color: #856404;">
+        <strong>⚠️ 注意:</strong> <%= errorMessage %>
+      </div>
+    <% } %>
+    
     <!-- 絞り込みと並べ替えフォーム -->
     <div class="filter-sort">
       <select id="protocol-filter">
